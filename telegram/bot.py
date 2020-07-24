@@ -28,6 +28,7 @@ def check_auth(f):
 	return deco
 
 
+
 @bot.message_handler(commands=['start'])
 def start_message(message):
 	bot.send_message(message.chat.id, 'Привет, этот бот поможет тебе быть в курсе о своих тратах')
@@ -141,31 +142,31 @@ def create_button(user_id, category):
 	return telebot.types.InlineKeyboardButton(text=name_by_category(category), callback_data=json.dumps(callback_data))
 
 def expenses(message):
-		user_id = message.from_user.id
-		categories = telebot.types.InlineKeyboardMarkup()
-		categories.add(create_button(user_id, "good_food"))
-		categories.add(create_button(user_id, "bad_food"))
-		categories.add(create_button(user_id, "electronics"))
-		categories.add(create_button(user_id, "clothes"))
-		categories.add(create_button(user_id, "attractions"))
+	user_id = message.from_user.id
+	categories = telebot.types.InlineKeyboardMarkup()
+	categories.add(create_button(user_id, "good_food"))
+	categories.add(create_button(user_id, "bad_food"))
+	categories.add(create_button(user_id, "electronics"))
+	categories.add(create_button(user_id, "clothes"))
+	categories.add(create_button(user_id, "attractions"))
 
-		list_temp = message.text.split(None, maxsplit=1)
-		
-		try:
-			value = float(list_temp[0].replace(",", "."))
-		except ValueError:
-			bot.send_message(message.chat.id, "Введи корректное значение")
-			return
+	list_temp = message.text.split(None, maxsplit=1)
+	
+	try:
+		value = float(list_temp[0].replace(",", "."))
+	except ValueError:
+		bot.send_message(message.chat.id, "Введи корректное значение")
+		return
 
 
-		bot.send_message(message.chat.id, message.text, reply_markup = categories)
-		
-		user_data[message.from_user.id]["value"] = value
-		if len(list_temp) == 1:
-			user_data[message.from_user.id]["descrription"] = ""
-		
-		else:	
-			user_data[message.from_user.id]["description"] = list_temp[1]
+	bot.send_message(message.chat.id, message.text, reply_markup = categories)
+	
+	user_data[message.from_user.id]["value"] = value
+	if len(list_temp) == 1:
+		user_data[message.from_user.id]["descrription"] = ""
+	
+	else:	
+		user_data[message.from_user.id]["description"] = list_temp[1]
 
 def sql_write(user_id, user_data):
 
