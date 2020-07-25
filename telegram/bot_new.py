@@ -36,7 +36,7 @@ def query_handler(call):
         time_enter_date_first_step(call)
 
     if call.data == "Add category":
-        add_category()
+        add_category_first_step(call)
 
     if call.data == "Delete all categories":
         delete_categories(call)
@@ -45,10 +45,11 @@ def query_handler(call):
         show_all_categories(call)
 @bot.message_handler(func=lambda message: True)
 def default(message):
-    print(message.from_user.id)
-    print(user_data)
     if user_data[message.from_user.id]["step"] == "date":
         time_enter_date_second_step(message)
+
+    if  user_data[message.from_user.id]["step"] == "category":
+        add_category_second_step(message)
 
 def create_button(text):
     return telebot.types.InlineKeyboardButton(text = text, callback_data = text)
@@ -90,6 +91,7 @@ def time_today(call):
     bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = "Selected date")
     bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup = time_today)
     bot.send_message(call.message.chat.id, text = "Enter your expenses")
+    user_data[call.from_user.id]["step"] = "expenses"
 
 def time_yesterday(call):
     date_temp = datetime.datetime.now()
@@ -100,11 +102,11 @@ def time_yesterday(call):
     bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = "Selected date")
     bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup = time_yesterday)
     bot.send_message(call.message.chat.id, text = "Enter your expenses")
+    user_data[call.from_user.id]["step"] = "expenses"
 
 def time_enter_date_first_step(call):
     user_data[call.from_user.id] = {'step': 'date'}
     bot.send_message(call.message.chat.id, text = "Enter your date")
-    print(user_data)
 
 def time_enter_date_second_step(message):
     date = message.text
@@ -121,8 +123,17 @@ def time_enter_date_second_step(message):
         bot.send_message(message.chat.id, text = "Selected date", reply_markup = time_enter_date_first_step)
         bot.send_message(message.chat.id, text = "Enter your expenses")
 
-def add_category(call):
-    pass
+def add_category_second_step(message):
+    sql_code.add_category(message.from_user.id, message.text)
+    settings = telebot.types.InlineKeyboardMarkup()
+    settings.add(create_button("Add category"))
+    settings.add(create_button("Delete all categories"))
+    settings.add(create_button("Show all categories"))
+    bot.send_message(message.chat.id, reply_markup = settings, text = "You added new category")
+
+def add_category_first_step(call):
+    bot.send_message(call.message.chat.id, text = "Send your category")
+    user_data[call.from_user.id] = {"step": "category"}
 
 def delete_categories(call):
     sql_code.del_categories(call.from_user.id)
@@ -134,9 +145,8 @@ def delete_categories(call):
 
 def show_all_categories(call):
     categories = sql_code.show_categories(call.from_user.id)
-    print(categories)
     if categories == []:
-        bot.send_message(call.message.chat.id, "You have not any categories")
+        bot.send_message(call.message.chat.id, "You don't have any categories")
     else:
         text = f'Categories: {categories[0][0]}'
         for y in range(1, len(categories)):

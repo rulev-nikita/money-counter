@@ -51,7 +51,7 @@ def check_auth(user_id):
         return True
 
 #del_categories(332471895)
-data()
+#data()
 
 #cursor.execute(f'SELECT * FROM categories WHERE')
 
