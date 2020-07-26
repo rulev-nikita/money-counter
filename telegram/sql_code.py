@@ -7,18 +7,16 @@ import config
 def add_category(user_id, category):
     conn = sqlite3.connect(config.my_db)
     cursor = conn.cursor()
-    cursor.execute(f'INSERT INTO categories (user_id, name) VALUES ({user_id}, "{category}");')
+    cursor.execute(f'INSERT INTO categories (user_id, name, value, description) VALUES ({user_id}, "{category}");')
     conn.commit()
     conn.close()
 
-def del_categories(user_id):
-    print(user_id)
+def del_categories(user_id):        
     conn = sqlite3.connect(config.my_db)
     cursor = conn.cursor()
     cursor.execute(f'DELETE FROM categories WHERE user_id = {user_id};')
     conn.commit()
     conn.close()
-    print(2)
 
 def show_categories(user_id):
     conn = sqlite3.connect(config.my_db)
@@ -50,21 +48,38 @@ def check_auth(user_id):
     if row:
         return True
 
+def add_expenses(user_id, name, value, description, time):
+    conn = sqlite3.connect(config.my_db)
+    cursor = conn.cursor()
+    cursor.execute(f'SELECT id FROM categories WHERE name = "{name}" AND user_id = {user_id}')
+    category_id = cursor.fetchall()
+    conn.commit()
+    cursor.execute(f'INSERT INTO expenses (category_id, description, value, time) VALUES ({category_id[0][0]}, "{description}", {value}, "{time}")')
+    conn.commit()
+    conn.close()
+
+def data_for_export():
+    pass
+    
 #del_categories(332471895)
 #data()
 
 #cursor.execute(f'SELECT * FROM categories WHERE')
 
-
-# cursor.execute('''CREATE TABLE categories(
+# conn = sqlite3.connect(config.my_db)
+# cursor = conn.cursor()
+# cursor.execute('''CREATE TABLE expenses(
 #    id INTEGER PRIMARY KEY,
+#    category_id INTEGER,
 #    user_id INTEGER,
-#    name TEXT)''')
+#    description TEXT)''')
+# conn.commit()
+# conn.close()
 
-#cursor.execute('DROP TABLE categories')
+#cursor.execute('DROP TABLE expenses')
 
 
-# cursor.execute('PRAGMA table_info(categories)')
+# cursor.execute('PRAGMA table_info(expenses)')
 # rows = cursor.fetchall()
 # for row in rows:
 #     print(row)
