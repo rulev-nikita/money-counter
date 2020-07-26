@@ -23,10 +23,10 @@ def show_categories(user_id):
     cursor = conn.cursor()
     cursor.execute(f'SELECT name FROM categories WHERE user_id = {user_id}')
     rows = cursor.fetchall()
-    return rows 
+    print(rows) 
     conn.commit()
     conn.close()
-
+    return rows
 
 def data():
     conn = sqlite3.connect(config.my_db)
@@ -58,9 +58,27 @@ def add_expenses(user_id, name, value, description, time):
     conn.commit()
     conn.close()
 
-def data_for_export():
-    pass
+def data_for_export(user_id):
+    conn = sqlite3.connect(config.my_db)
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM expenses')
+    data = cursor.fetchall()
+    conn.commit()
+    print(data)
     
+    for i in range(len(data)):
+        data[i] = list(data[i])
+        print(data[i])
+        print(data[i][1])
+        cursor.execute(f'SELECT name FROM categories WHERE user_id = {user_id} and id = {data[i][1]}')
+        name = cursor.fetchall()
+        data[i][1] = name[0][0]
+        data[i].pop(0)
+        conn.commit()
+    
+    print(data)
+    conn.close()
+    return data
 #del_categories(332471895)
 #data()
 

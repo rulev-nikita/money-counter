@@ -12,7 +12,7 @@ bot = telebot.TeleBot(config.token)
 
 user_data = {}
 
-basic_categories = ["food", "healt", "transport and housing", "presents", "clothes"]
+basic_categories = ["food", "health", "transport and housing", "presents", "clothes"]
 
 def check_auth(f):
     def deco(message):
@@ -34,6 +34,7 @@ def start_message(message):
     start_menu(message)
 
 @bot.callback_query_handler(func = lambda call: True)
+@check_auth
 def query_handler(call):
     if call.data == "Settings":
         settings(call)
@@ -59,7 +60,7 @@ def query_handler(call):
     if call.data == "Show all categories":
         show_all_categories(call)
 
-    if call.data == "export my data in csv":
+    if call.data == "Export my data in csv":
         export_csv(call)
 
     if call.data in user_data[call.from_user.id]['categories']:
@@ -235,6 +236,17 @@ def sql_write(call):
     sql_code.add_expenses(user_id, name, value, description, time)
 
 def export_csv(call):
-    sql_code.data_for_export()
+    user_id = call.from_user.id
+    data = sql_code.data_for_export(user_id)
+
+    name = f'csv_files\\{datetime.datetime.now().strftime("%d.%m.%Y")}.csv'
+
+    with open(name, 'w', newline='') as fin:
+        writer = csv.writer(fin, dialect='excel')
+        writer.writerow(["Category", "Value", "Description", "Date"])
+        writer.writerows(data)
+
+    doc = open(name, 'r')
+    bot.send_document(call.message.chat.id, doc)
 
 bot.polling()
