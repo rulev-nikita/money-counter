@@ -2,6 +2,7 @@ import datetime
 import sqlite3
 import json
 import csv
+from pathlib import Path
 
 import telebot
 
@@ -238,13 +239,17 @@ def sql_write(call):
 def export_csv(call):
     user_id = call.from_user.id
     data = sql_code.data_for_export(user_id)
-    name = f'csv_files\\{datetime.datetime.now().strftime("%d.%m.%Y")}.csv'
+    folder = Path('csv_files')
 
+    if not folder.exists():
+        folder = Path('csv_files').mkdir(parents=True, exist_ok=True)
+
+    name = folder/f'{call.from_user.id}_{datetime.datetime.now().strftime("%d.%m.%Y")}.csv'
     with open(name, 'w', newline='') as fin:
         writer = csv.writer(fin, dialect='excel')
         writer.writerow(["Category", "Value", "Description", "Date"])
         writer.writerows(data)
-
+            
     doc = open(name, 'r')
     bot.send_document(call.message.chat.id, doc)
 
