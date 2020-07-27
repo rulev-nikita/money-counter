@@ -238,7 +238,6 @@ def sql_write(call):
 def export_csv(call):
     user_id = call.from_user.id
     data = sql_code.data_for_export(user_id)
-
     name = f'csv_files\\{datetime.datetime.now().strftime("%d.%m.%Y")}.csv'
 
     with open(name, 'w', newline='') as fin:
