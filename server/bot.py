@@ -8,12 +8,12 @@ import telebot
 
 import config
 import sql_code
+from config import basic_categories
 
 bot = telebot.TeleBot(config.token)
 
 user_data = {}
 
-basic_categories = ["food", "health", "transport and housing", "presents", "clothes"]
 
 def check_auth(f):
     def deco(message):

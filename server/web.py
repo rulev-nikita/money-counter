@@ -1,8 +1,8 @@
 import hashlib
 import secrets
 from flask import Flask, request, make_response, jsonify
-from sql_code import get_token, check_user_exists, create_user, get_user
-
+import sql_code as sql
+import config
 app = Flask(__name__)
 
 
@@ -15,7 +15,7 @@ def login():
     data = request.json
     login = data["login"]
     password = data["password"]
-    user = get_user(login)    
+    user = sql.get_user(login)    
     if not user:
         return make_response(
             jsonify(err="User does not exists"), 
@@ -35,7 +35,7 @@ def registration():
     data = request.json
     login = data["login"]
     password = data["password"]
-    if check_user_exists(login):
+    if sql.check_user_exists(login):
         return make_response(
             jsonify(err="User alredy exists"), 
             400
@@ -44,7 +44,10 @@ def registration():
     salt = secrets.token_hex(8)
     pass_hash = hash_password(password, salt)
     token = secrets.token_hex(64)
-    create_user(login, pass_hash, salt, token)
+    sql.create_user(login, pass_hash, salt, token)
+    user = sql.get_user(login)
+    for c in config.basic_categories:
+        sql.add_category(user["id"], c)
     return jsonify(token=token)
 
 

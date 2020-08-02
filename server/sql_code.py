@@ -117,7 +117,7 @@ def get_user(login):
             "salt": row[2],
             "token": row[3],
             "id": row[4],
-        }
+    }
     conn.commit()
     conn.close()
     return user
