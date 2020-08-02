@@ -1,15 +1,40 @@
-from flask import Flask
+import hashlib
+import secrets
+from flask import Flask, request, make_response, jsonify
+from sql_code import get_token, check_user_exists, create_user, get_user
 
 app = Flask(__name__)
 
+
+def hash_password(password, salt):
+    return hashlib.sha256((password + salt).encode()).hexdigest()
+
+
 @app.route('/login', methods=['POST'])
 def login():
+    data = request.json
+    login = data["login"]
+    password = data["password"]
+    user = 
     return ""
 
 
 @app.route('/registration', methods=['POST'])
 def registration():
-    return ""
+    data = request.json
+    login = data["login"]
+    password = data["password"]
+    if check_user_exists(login):
+        return make_response(
+            jsonify(err="User alredy exists"), 
+            400
+        )
+
+    salt = secrets.token_hex(8)
+    pass_hash = hash_password(password, salt)
+    token = secrets.token_hex(64)
+    create_user(login, pass_hash, salt, token)
+    return jsonify(token=token)
 
 
 @app.route('/addCategory', methods=['POST'])
