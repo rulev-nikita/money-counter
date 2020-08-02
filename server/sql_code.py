@@ -103,18 +103,21 @@ def get_user(login):
     cursor.execute(
         '''
         SELECT login, password, salt, token, id
-        FROM web_usres
+        FROM web_users
         WHERE login = ?
         ''', (login,)
     )
     row = cursor.fetchone()
-    user = {
-        "login": login,
-        "password": row[1],
-        "salt": row[2],
-        "token": row[3],
-        "id": row[4],
-    }
+    if not row:
+        user = None
+    else:
+        user = {
+            "login": login,
+            "password": row[1],
+            "salt": row[2],
+            "token": row[3],
+            "id": row[4],
+        }
     conn.commit()
     conn.close()
     return user

@@ -15,8 +15,19 @@ def login():
     data = request.json
     login = data["login"]
     password = data["password"]
-    user = 
-    return ""
+    user = get_user(login)    
+    if not user:
+        return make_response(
+            jsonify(err="User does not exists"), 
+            404
+        )
+    pass_hash = hash_password(password, user["salt"])
+    if pass_hash != user["password"]:
+        return make_response(
+            jsonify(err="Wrong password"), 
+            400
+        )
+    return jsonify(token=user["token"])
 
 
 @app.route('/registration', methods=['POST'])
