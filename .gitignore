@@ -1,4 +1,4 @@
 *.db
 __pycache__
-telegram/csv_files
+*.csv
 config.py
