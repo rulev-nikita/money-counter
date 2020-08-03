@@ -16,6 +16,14 @@ def del_categories(user_id):
     conn.commit()
     conn.close()
 
+def del_category(user_id, category):        
+    conn = sqlite3.connect(config.my_db)
+    cursor = conn.cursor()
+    cursor.execute('''DELETE FROM categories WHERE user_id = ? AND name = ?''', (user_id, category))
+    conn.commit()
+    conn.close()
+
+
 def show_categories(user_id):
     conn = sqlite3.connect(config.my_db)
     cursor = conn.cursor()
@@ -97,15 +105,15 @@ def create_user(login, password, salt, token):
     conn.commit()
     conn.close()
 
-def get_user(login):
+def get_user(*, login='', token=''):
     conn = sqlite3.connect(config.my_db)
     cursor = conn.cursor()
     cursor.execute(
         '''
         SELECT login, password, salt, token, id
         FROM web_users
-        WHERE login = ?
-        ''', (login,)
+        WHERE login = ? OR token = ?
+        ''', (login, token)
     )
     row = cursor.fetchone()
     if not row:

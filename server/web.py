@@ -3,6 +3,8 @@ import secrets
 from flask import Flask, request, make_response, jsonify
 import sql_code as sql
 import config
+import datetime
+
 app = Flask(__name__)
 
 
@@ -15,7 +17,7 @@ def login():
     data = request.json
     login = data["login"]
     password = data["password"]
-    user = sql.get_user(login)    
+    user = sql.get_user(login=login)    
     if not user:
         return make_response(
             jsonify(err="User does not exists"), 
@@ -45,7 +47,7 @@ def registration():
     pass_hash = hash_password(password, salt)
     token = secrets.token_hex(64)
     sql.create_user(login, pass_hash, salt, token)
-    user = sql.get_user(login)
+    user = sql.get_user(login=login)
     for c in config.basic_categories:
         sql.add_category(user["id"], c)
     return jsonify(token=token)
@@ -53,18 +55,54 @@ def registration():
 
 @app.route('/addCategory', methods=['POST'])
 def add_category():
-    return ""
-
+    data = request.json
+    token = data.get("token", "")
+    user = sql.get_user(token=token)
+    if not token or not user:
+        return make_response(
+            jsonify(err="Invalid token"), 
+            400
+        )
+    category = data.get("category")
+    if not category:
+         return make_response(
+            jsonify(err="category should be provided"), 
+            400
+        )
+    sql.add_category(user["id"], category)
+    return "", 200
 
 @app.route('/removeCategory', methods=['POST'])
 def remove_category():
-    return ""
-
+    data = request.json
+    token = data.get("token", "")
+    user = sql.get_user(token=token)
+    if not token or not user:
+        return make_response(
+            jsonify(err="Invalid token"), 
+            400
+        )
+    category = data.get("category")
+    if not category:
+         return make_response(
+            jsonify(err="category should be provided"), 
+            400
+        )
+    sql.del_category(user["id"], category)
+    return "", 200
 
 @app.route('/categories', methods=['GET'])
 def categories():
-    return ""
-
+    token = request.args.get("token", "")
+    user = sql.get_user(token=token)
+    if not token or not user:
+         return make_response(
+            jsonify(err="Invalid token"), 
+            400
+        )
+    res = sql.show_categories(user["id"])
+    print(res, user["id"])
+    return jsonify(list(map(lambda x: x[0], res)))
 
 @app.route('/csv', methods=['GET'])
 def csv():
@@ -73,8 +111,40 @@ def csv():
 
 @app.route('/expenses', methods=['POST'])
 def expenses():
-    return ""
-
+    data = request.json
+    token = data.get("token", "")
+    user = sql.get_user(token=token)
+    if not token or not user:
+        return make_response(
+            jsonify(err="Invalid token"), 
+            400
+        )
+    category = data.get("category")
+    value = data.get("value")
+    description = data.get("description", "")
+    time = data.get("time")
+    if not category or not time or not value:
+        return make_response(
+            jsonify(err="category, value, time should be provided"), 
+            400
+        )
+    try: 
+        datetime.datetime.strptime(time, "%d.%m.%Y").date()
+    except ValueError:
+        return make_response(
+            jsonify(err="Wrong date format. '%d.%m.%Y' should be provided"),
+            400
+        )
+    try:
+        value = float(value)
+    except ValueError:
+        return make_response(
+            jsonify(err="Wrong value. should be number"),
+            400
+        )
+    print(user["id"], category, value, description, time)
+    sql.add_expenses(user["id"], category, value, description, time)
+    return "", 200
 
 if __name__ == '__main__':
     app.run(debug=True)
