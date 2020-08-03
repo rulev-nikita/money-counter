@@ -1,9 +1,11 @@
 import hashlib
 import secrets
-from flask import Flask, request, make_response, jsonify
+from flask import Flask, request, make_response, jsonify, send_file
 import sql_code as sql
 import config
 import datetime
+
+from util import data_to_csv_file
 
 app = Flask(__name__)
 
@@ -65,7 +67,7 @@ def add_category():
         )
     category = data.get("category")
     if not category:
-         return make_response(
+        return make_response(
             jsonify(err="category should be provided"), 
             400
         )
@@ -84,7 +86,7 @@ def remove_category():
         )
     category = data.get("category")
     if not category:
-         return make_response(
+        return make_response(
             jsonify(err="category should be provided"), 
             400
         )
@@ -96,7 +98,7 @@ def categories():
     token = request.args.get("token", "")
     user = sql.get_user(token=token)
     if not token or not user:
-         return make_response(
+        return make_response(
             jsonify(err="Invalid token"), 
             400
         )
@@ -106,8 +108,16 @@ def categories():
 
 @app.route('/csv', methods=['GET'])
 def csv():
-    return ""
-
+    token = request.args.get("token", "")
+    user = sql.get_user(token=token)
+    if not token or not user:
+        return make_response(
+            jsonify(err="Invalid token"), 
+            400
+        )
+    data = sql.data_for_export(user["id"])
+    name = data_to_csv_file(user["id"], data)
+    return send_file(name)
 
 @app.route('/expenses', methods=['POST'])
 def expenses():
